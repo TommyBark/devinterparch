@@ -1,5 +1,6 @@
 # Task Description
-I have selected the Architectural Comparisons task, but after working on it and reading the description again I have done something slightly different.
+Note: _I have selected the Architectural Comparisons task, but after finishing work and reading the description again I have done something slightly different._
+
 Let's try to estimate local learning coefficient for different sizes of pretrained models from same model families i.e. [gpt2, gpt2-medium, gpt2-large, gpt2-xl].
 
 We assume:
