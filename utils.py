@@ -7,6 +7,8 @@ from transformers import (
     AutoTokenizer,
     AutoModelForImageClassification,
     AutoModelForCausalLM,
+    LlamaForCausalLM,
+    LlamaTokenizer,
 )
 from devinterp.slt import estimate_learning_coeff_with_summary
 from devinterp.optim import SGLD, SGNHT
@@ -17,15 +19,32 @@ import random
 import numpy as np
 
 
-def get_model(model_name: str, device: str = "cuda"):
-    if model_name == "resnet-tiny-mnist":
+def is_model_quantized(model) -> bool:
+    for _, param in model.named_parameters():
+        if param.dtype == torch.uint8:
+            return True
+    return False
+
+
+def get_model(
+    model_name: str, device: str = "cuda", model_loading_kwargs=Optional[dict]
+):
+    if "llama" in model_name:
+        tokenizer = LlamaTokenizer.from_pretrained(model_name, **model_loading_kwargs)
+        model = LlamaForCausalLM.from_pretrained(model_name, **model_loading_kwargs)
+        if not is_model_quantized(model):
+            model = model.to(device)
+        # model.config.pad_token_id = model.config.eos_token_id
+    elif model_name == "resnet-tiny-mnist":
         model = AutoModelForImageClassification.from_pretrained(
             "fxmarty/resnet-tiny-mnist"
         ).to(device)
         tokenizer = None
     else:
-        tokenizer = AutoTokenizer.from_pretrained(model_name)
-        model = AutoModelForCausalLM.from_pretrained(model_name).to(device)
+        tokenizer = AutoTokenizer.from_pretrained(model_name, **model_loading_kwargs)
+        model = AutoModelForCausalLM.from_pretrained(
+            model_name, **model_loading_kwargs
+        ).to(device)
         model.config.pad_token_id = model.config.eos_token_id
     return tokenizer, model
 
@@ -39,13 +58,13 @@ def get_dataset(
 ):
     dataset = load_dataset(dataset_name, split="train")
     tokenizer.pad_token = tokenizer.eos_token
+    tokenizer.padding_side = "right"
     dataset = CustomDataset(
         dataset,
         tokenizer=tokenizer,
         padding="max_length",
         max_length=max_token_length,
-        min_text_length=max_token_length
-        * 3.5,  # 3.5 to approximate average token char length
+        min_text_length=max_token_length*3.5,  # 3.5 to approximate average token char length
         batch_size=batch_size,
         shuffle=shuffle,
     )

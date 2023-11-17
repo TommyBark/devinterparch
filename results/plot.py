@@ -17,7 +17,7 @@ df = pd.read_csv("results_gpt2_SGLD_20231117-163104.csv", index_col=0)
 
 agg_table = df.groupby("model", group_keys=False).apply(pd_model_grouper)
 agg_table["model_size"] = [117, 774, 345, 1558]
-plt.figure(figsize=(12, 8))
+plt.figure(figsize=(8, 5))
 sns.lineplot(agg_table, y="mean", x="model_size")
 
 x_values_to_highlight = {
