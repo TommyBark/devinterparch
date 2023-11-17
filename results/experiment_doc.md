@@ -12,7 +12,7 @@ We assume:
 ## Playing with code
 
 ### Dataset preparation
-To sample loss I will use `imdb` dataset. I will pass part of each review as a input into model and use the next token as a label.  
+To sample loss we will use `imdb` dataset. We will pass part of each review as a input into model and use the next token as a label.  
 We don't want to use the whole review - 1 as input and last token as label as there is some potential that last tokens of many reviews will end similarly (e.g. ".") 
 We select text which are at least X tokens long and then  use X-1 token as label.  (In this case X should be somehow high as higher context -> better performance). We have selected X=200.
 
